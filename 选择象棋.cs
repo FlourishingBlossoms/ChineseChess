@@ -1,5 +1,5 @@
 using UnityEngine;
-
+using System.Collections;
 public class 选择象棋 : MonoBehaviour
 {
     // 棋子选择相关变量
@@ -22,7 +22,7 @@ public class 选择象棋 : MonoBehaviour
     private bool IsIllegal2 = false; // 是否为非法移动
     private float TimeCounter = 0;   // 时间计数器
     private float TimeCounter2 = 0;
-
+    private bool isAIThinking = false; // 防止AI思考时玩家乱点
     public Transform ChessBoardTransform; // 在Inspector面板中拖拽棋盘物体到这里
 
     // 判断当前选中棋子是否属于当前回合
@@ -92,6 +92,12 @@ public class 选择象棋 : MonoBehaviour
 
     private void Update()
     {
+        if (!IsRedTurn && !AllowMove && !isAIThinking)
+        {
+            StartCoroutine(AIThinkCoroutine());
+            return; // 必须return，阻止后续的鼠标点击代码执行
+        }
+
         if (Input.GetMouseButtonDown(0))
         {
             Vector2 MousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -166,10 +172,8 @@ public class 选择象棋 : MonoBehaviour
                     {
                         int targetChessId = ToolManager.GetChessId(hit.transform.gameObject);
 
-                        // 检查是否点击了自己的棋子
                         if (ChessManager.ChessArray[SelectedID].Is_Red == ChessManager.ChessArray[targetChessId].Is_Red)
                         {
-                            // 点击自家棋子，视为切换选择
                             SelectedID = targetChessId;
                             SelectedChessObj = hit.transform.gameObject;
                             选择棋子.transform.position = hit.transform.position;
@@ -179,6 +183,9 @@ public class 选择象棋 : MonoBehaviour
 
                         Vector3 localTargetPos = ChessBoardTransform.InverseTransformPoint(hit.point);
 
+                        // 【修复重点】必须在这里也更新 LocalTargetPos
+                        // 否则移动结束后，数据会存储成错误的坐标
+                        LocalTargetPos = localTargetPos;
                         if (CheckMoveRules(SelectedID, localTargetPos.x, localTargetPos.y, targetChessId))
                         {
                             // 吃子
@@ -250,5 +257,49 @@ public class 选择象棋 : MonoBehaviour
                 IsIllegal2 = false;
             }
         }
+    }
+    IEnumerator AIThinkCoroutine()
+    {
+        isAIThinking = true;
+        Debug.Log("AI思考中...");
+        yield return new WaitForSeconds(0.5f); // 假装思考一会儿，让游戏看起来自然
+
+        // 1. 让AI计算走法
+        ChessAI.MoveData bestMove = ChessAI.Instance.GetBestMove(false); // false代表黑方
+
+        // 2. 执行走法 (复用你的移动逻辑)
+        ExecuteAIMove(bestMove);
+
+        isAIThinking = false;
+    }
+
+    // 执行AI的走法
+    void ExecuteAIMove(ChessAI.MoveData move)
+    {
+        // 选中棋子
+        SelectedID = move.ChessId;
+        SelectedChessObj = ChessManager.ChessArray[move.ChessId].Obj;
+
+        // 计算目标位置
+        float targetX = ToolManager.ChangeBackX(move.TargetLogX);
+        float targetY = ToolManager.ChangeBackY(move.TargetLogY);
+
+        LocalTargetPos = new Vector3(targetX, targetY, 0);
+        ClickPosition = ChessBoardTransform.TransformPoint(LocalTargetPos);
+
+        // 处理吃子
+        if (move.KillId != -1)
+        {
+            ChessManager.ChessArray[move.KillId].Is_Dead = true;
+            Destroy(ChessManager.ChessArray[move.KillId].Obj);
+        }
+
+        // 触发移动动画
+        AllowMove = true;
+        SelectedID1 = SelectedID;
+        SelectedID = -1; // 清空选择
+
+        // 切换回合
+        IsRedTurn = true; // 换回红方
     }
 }

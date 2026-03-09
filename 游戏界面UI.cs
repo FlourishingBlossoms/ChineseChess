@@ -3,7 +3,9 @@ using UnityEngine;
 public class 游戏界面UI : MonoBehaviour
 {
     // Start is called before the first frame update
-    private static string Difficulty;
+    public static 游戏界面UI Instance { get; private set; }
+
+    public  static string Difficulty;
 
     public GameObject Easy;
     public GameObject Normal;

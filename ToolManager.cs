@@ -110,8 +110,8 @@ public class ToolManager : MonoBehaviour
                 !ChessManager.ChessArray[i].Is_Dead)
             {
                 // 使用 Mathf.Abs 计算绝对差值，避免方向问题
-                if (Mathf.Abs(ChessManager.ChessArray[i].Vec_X - VecX) < 0.2f &&
-                    Mathf.Abs(ChessManager.ChessArray[i].Vec_Y - VecY) < 0.2f)
+                if (Mathf.Abs(ChessManager.ChessArray[i].Vec_X - VecX) < 0.25f &&
+                    Mathf.Abs(ChessManager.ChessArray[i].Vec_Y - VecY) < 0.25f)
                 {
                     return ChessManager.ChessArray[i].Id;
                 }
