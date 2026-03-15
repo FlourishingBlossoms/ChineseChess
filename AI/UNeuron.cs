@@ -1,16 +1,3 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-
-/// <summary>
-/// 神经细胞
-/// </summary>
-public class UNeuron  {
-    public double[] InputWeights;
-
-    public UNeuron(int NumInputs)
-    {
-        //多一个权重值
-        InputWeights = new double[NumInputs + 1];
-    }
-}
+version https://git-lfs.github.com/spec/v1
+oid sha256:63abc84355bc2b958e5bf02d75840ed513258bfe1b6a8170fad4bbe219ea2bed
+size 331
